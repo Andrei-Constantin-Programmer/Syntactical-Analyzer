@@ -29,7 +29,9 @@ public class Main {
                 }
                 reader.close();
 
-                Parser parser = new Parser(lines);
+                /*Tokenizer tokenizer = new Tokenizer(lines);
+                var tokens = tokenizer.getTokens();
+                Parser parser = new Parser(tokens);*/
 
             }catch(IOException ex)
             {
