@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * The Tokenizer transforms the input code into a list of tokens in the Boaz language.
@@ -11,14 +9,7 @@ import java.util.Objects;
 public class Tokenizer
 {
     private List<Token> tokens;
-    public static List<String> baseKeywords;
-    public static List<String> statements;
-    public static List<String> statementComponents;
-    public static List<String> arithmeticOperators;
-    public static List<String> booleanOperators;
-    public static List<String> relationalOperators;
-    public static List<String> unaryOperators;
-    public static List<String> otherSymbols;
+    private final Map<String, TokenType> keywords;
 
     /**
      * Constructor for the Tokenizer
@@ -26,15 +17,8 @@ public class Tokenizer
      */
     public Tokenizer(String input)
     {
-        //keywords = new ArrayList<>(){{add("begin"); add("do"); add("else"); add("end"); add("fi"); add("if"); add("od"); add("print"); add("program"); add("then"); add("while");}};
-        baseKeywords = new ArrayList<>(){{add("program"); add("begin"); add("end");}};
-        statements = new ArrayList<>(){{add("if"); add("while"); add("print"); }};
-        statementComponents = new ArrayList<>(){{add("then"); add("else"); add("fi"); add("do"); add("od");}};
-        arithmeticOperators = new ArrayList<>(){{add("+"); add("*"); add("/");}};
-        booleanOperators = new ArrayList<>(){{add("&"); add("|");}};
-        relationalOperators = new ArrayList<>(){{add("="); add("!="); add("<"); add(">"); add("<="); add(">=");}};
-        unaryOperators = new ArrayList<>(){{add("-"); add("!");}};
-        otherSymbols = new ArrayList<>(){{add(","); add(";"); add(":="); add("("); add(")"); }};
+        keywords = new HashMap<>(){{put("begin", TokenType.BEGIN); put("do", TokenType.DO); put("else", TokenType.ELSE); put("end", TokenType.END); put("fi", TokenType.FI); put("if", TokenType.IF); put("od", TokenType.OD); put("print", TokenType.PRINT);
+            put("program", TokenType.PROGRAM); put("then", TokenType.THEN); put("while", TokenType.WHILE);}};
 
         tokens = new ArrayList<>();
         tokenize(input);
@@ -49,49 +33,71 @@ public class Tokenizer
         String[] splitInput = input.split("\\s+");
         for(var x: splitInput)
         {
-            char firstChar = x.charAt(0);
-            char lastChar = x.charAt(x.length()-1);
-            if(isAlphabeticOrUnderscore(firstChar))
-            {
-                if(baseKeywords.contains(x))
-                    tokens.add(new Token(x, Token.BASE_KEYWORD));
-                else if(statements.contains(x))
-                    tokens.add(new Token(x, Token.STATEMENT));
-                else if(x.equals("int") || x.equals("char"))
-                    tokens.add(new Token(x, Token.TYPE));
-                else
-                    tokens.add(new Token(x, Token.IDENTIFIER));
-            }
-            else if(isNumeric(firstChar))
-            {
-                for(int i=1; i<x.length()-1; i++)
-                    if(!isNumeric(x.charAt(i)))
-                        throw new TokenizeException("Non-numeric value in numeric token");
-                tokens.add(new Token(x, Token.INTEGER));
-            }
-            else if(firstChar=='\"')
-            {
-                if(lastChar!='\"')
-                    throw new TokenizeException("Missing enclosing \" symbol");
-                tokens.add(new Token(x, Token.CHARACTER));
-            }
-            else if(arithmeticOperators.contains(x))
-                tokens.add(new Token(x, Token.ARITHMETIC_OPERATOR));
-            else if(booleanOperators.contains(x))
-                tokens.add(new Token(x, Token.BOOLEAN_OPERATOR));
-            else if(relationalOperators.contains(x))
-                tokens.add(new Token(x, Token.RELATIONAL_OPERATOR));
-            else if(unaryOperators.contains(x))
-                tokens.add(new Token(x, Token.UNARY_OPERATOR));
-            else
-            {
-                if(otherSymbols.contains(x))
-                    tokens.add(new Token(x, Token.OTHER));
-                else
-                    throw new TokenizeException("Invalid token " + x);
+            switch (x) {
+                case "(" -> tokens.add(new Token(x, TokenType.LEFT_PARENTHESIS, null));
+                case ")" -> tokens.add(new Token(x, TokenType.RIGHT_PARENTHESIS, null));
+                case "," -> tokens.add(new Token(x, TokenType.COMMA, null));
+                case ";" -> tokens.add(new Token(x, TokenType.SEMICOLON, null));
+                case "+" -> tokens.add(new Token(x, TokenType.PLUS, null));
+                case "-" -> tokens.add(new Token(x, TokenType.MINUS, null));
+                case "*" -> tokens.add(new Token(x, TokenType.STAR, null));
+                case "/" -> tokens.add(new Token(x, TokenType.SLASH, null));
+                case "!" -> tokens.add(new Token(x, TokenType.NOT, null));
+                case "!=" -> tokens.add(new Token(x, TokenType.NOT_EQUAL, null));
+                case "=" -> tokens.add(new Token(x, TokenType.EQUAL, null));
+                case "<" -> tokens.add(new Token(x, TokenType.LESS, null));
+                case "<=" -> tokens.add(new Token(x, TokenType.LESS_EQUAL, null));
+                case ">" -> tokens.add(new Token(x, TokenType.GREATER, null));
+                case ">=" -> tokens.add(new Token(x, TokenType.GREATER_EQUAL, null));
+                case ":=" -> tokens.add(new Token(x, TokenType.ASSIGN, null));
+
+                default -> {
+                    if(isNumeric(x.charAt(0)))
+                        addNumber(x);
+                    else if(x.charAt(0)=='"')
+                        addChar(x);
+                    else if(isAlphabeticOrUnderscore(x.charAt(0)))
+                    {
+                        TokenType type = keywords.get(x);
+                        if(type==null)
+                            type=TokenType.IDENTIFIER;
+                        tokens.add(new Token(x, type, null));
+                    }
+                    else
+                        throw new TokenizeException("Unexpected token " + x);
+                }
             }
         }
     }
+
+    /**
+     * Adds a character to the list
+     * @param tokenString The token string
+     */
+    private void addChar(String tokenString)
+    {
+        if(tokenString.length()>3)
+            throw new TokenizeException("Invalid character length");
+        if(tokenString.charAt(tokenString.length()-1) != '"')
+            throw new TokenizeException("No ending \" found for character");
+        tokens.add(new Token(tokenString, TokenType.CHARACTER, tokenString.charAt(1)));
+    }
+
+    /**
+     * Adds a number token to the list
+     * @param tokenString The token string
+     */
+    private void addNumber(String tokenString)
+    {
+        try{
+            int x = Integer.parseInt(tokenString);
+            tokens.add(new Token(tokenString, TokenType.NUMBER, x));
+        }catch(Exception ex)
+        {
+            throw new TokenizeException("Invalid number");
+        }
+    }
+
 
     /**
      * Get the list of tokens.
@@ -130,74 +136,31 @@ public class Tokenizer
      */
     public static class Token
     {
-        public static final int IDENTIFIER = 0;
-        public static final int BASE_KEYWORD = 1;
-        public static final int STATEMENT = 2;
-        public static final int INTEGER = 3;
-        public static final int CHARACTER = 4;
-        public static final int ARITHMETIC_OPERATOR = 5;
-        public static final int BOOLEAN_OPERATOR = 6;
-        public static final int RELATIONAL_OPERATOR = 7;
-        public static final int UNARY_OPERATOR = 8;
-        public static final int TYPE = 9;
-        public static final int OTHER = 10;
-
-        private String tokenString;
-        private int type;
+        final String tokenString;
+        final TokenType type;
+        final Object literal;
 
         /**
          * Constructor for the Token class. The token type must be one of the static values in the class.
          * @param tokenString The token itself
          * @param tokenType The type of token
          */
-        public Token(String tokenString, int tokenType)
+        public Token(String tokenString, TokenType tokenType, Object literal)
         {
-            if(tokenType<0 || tokenType>10)
-                throw new IllegalArgumentException("The tokenType must be one of the static values.");
             this.tokenString = tokenString;
             this.type = tokenType;
-        }
-
-        /**
-         * Get the token's type
-         * @return The token's type
-         */
-        public int getTokenType()
-        {
-            return type;
-        }
-
-        /**
-         * Get the token string
-         * @return The token string
-         */
-        public String getTokenString()
-        {
-            return tokenString;
+            this.literal = literal;
         }
 
         @Override
         public String toString() {
             return tokenString + " " + type;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Token)) return false;
-            Token token = (Token) o;
-            return type == token.type && tokenString.equals(token.tokenString);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(tokenString, type);
-        }
     }
 
-    enum TokenType
+    public enum TokenType
     {
-        LEFT_PARENT, RIGHT_PARENT, LEFT_BRACE, RIGHT_BRACE, COMMA, MINUS, PLUS, SEMICOLON, STAR, SLASH,
+        LEFT_PARENTHESIS, RIGHT_PARENTHESIS, COMMA, MINUS, PLUS, SEMICOLON, STAR, SLASH,
 
         NOT, NOT_EQUAL, EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, ASSIGN,
 
@@ -205,7 +168,7 @@ public class Tokenizer
 
         PROGRAM, BEGIN, END,
 
-        WHILE, PRINT, DO, OD, IF, THEN, ELSE, FI, INT, CHAR
+        WHILE, PRINT, DO, OD, IF, THEN, ELSE, FI, INT_TYPE, CHAR_TYPE
     }
 
     /**

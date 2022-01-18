@@ -35,7 +35,7 @@ public class Parser
     /**
      * Parse the lines of code
      */
-    public void parse()
+    /*public void parse()
     {
         if(!tokens.get(0).getTokenString().equals("program"))
         {
@@ -68,24 +68,24 @@ public class Parser
             else tokenIterationLocation++;
         }
 
-    }
+    }*/
 
     //region Main Parsers
     /**
      * Parse all declarations
      */
-    private void parseDeclarations()
+    /*private void parseDeclarations()
     {
         while(!currentToken().getTokenString().equals("begin"))
         {
             parseDeclaration();
         }
-    }
+    }*/
 
     /**
      * Parse a single declaration
      */
-    private void parseDeclaration()
+    /*private void parseDeclaration()
     {
         var type = currentToken();
         if (type.getTokenType() != Tokenizer.Token.TYPE)
@@ -107,172 +107,8 @@ public class Parser
         if (!currentToken().getTokenString().equals(";"))
             throw new ParseException("Expected ;");
         tokenIterationLocation++;
-    }
-
-
-
-
-
-    /**
-     * Parse an exception
-     *
-     * @param tokenPosition The iteration location
-     * @return The type of the expression
-     */
-    /*private int parseExpression(int tokenPosition)
-    {
-        int secondTokenPosition = getTerm(tokenPosition);
-        if(!isBinaryOperator(tokens.get(secondTokenPosition+1)))
-            return parseTerm(tokenPosition);
-        else
-        {
-            var type1 = parseTerm(tokenPosition);
-            var type2 = parseBinaryOp(secondTokenPosition+1);
-            var type3 = parseTerm(secondTokenPosition+2);
-
-            if(type1 == type2 && type2 == type3)
-                return type1;
-            throw new TypeException("Incompatible types");
-        }
     }*/
 
-    /**
-     * Parse a term.
-     * @param tokenPosition The token iteration location
-     * @return The type of the term
-     */
-    /*private int parseTerm(int tokenPosition)
-    {
-        if(getToken(tokenPosition).getTokenString().equals("("))
-        {
-            return parseExpression(tokenPosition);
-        }
-        else if(isUnaryOperator(getToken(tokenPosition)))
-        {
-            var type1 = parseUnaryOp(tokenPosition);
-            var type2 = parseTerm(tokenPosition+1);
-            if(type1 != type2)
-                throw new TypeException("Unary operator and term have different types");
-            return type1;
-        }
-        else
-            return convertTokenType(getToken(tokenPosition));
-    }*/
-    //endregion
-
-    //region Secondary Parsers
-    /**
-     * Parse a binary operator
-     * @param tokenPosition The token iteration location
-     *
-     * @return The type of the operator
-     */
-    /*private int parseBinaryOp(int tokenPosition)
-    {
-        var token = getToken(tokenPosition);
-        if(!isBinaryOperator(token))
-            throw new ParseException("Binary operator expected");
-        if(token.getTokenType()== Tokenizer.Token.BOOLEAN_OPERATOR)
-            return TYPE_BOOL;
-        else if(token.getTokenType() == Tokenizer.Token.ARITHMETIC_OPERATOR)
-            return TYPE_INT;
-        else
-            return TYPE_UNKNOWN;
-    }*/
-
-    /**
-     * Parse a unary operator
-     * @param tokenPosition The token iteration location
-     *
-     * @return The type of the operator
-     */
-    /*private int parseUnaryOp(int tokenPosition)
-    {
-        var token = getToken(tokenPosition);
-        if(!isUnaryOperator(token))
-            throw new ParseException("Binary operator expected");
-        if(token.getTokenString().equals("!"))
-            return TYPE_BOOL;
-        else
-            return TYPE_INT;
-    }*/
-    //endregion
-
-    /**
-     * Convert from token type to type.
-     * @param token The token
-     * @return The new type
-     */
-    /*private int convertTokenType(Tokenizer.Token token)
-    {
-        var tokenType = token.getTokenType();
-        if(tokenType == Tokenizer.Token.INTEGER)
-            return TYPE_INT;
-        else if (tokenType == Tokenizer.Token.CHARACTER)
-            return TYPE_CHAR;
-        else if(tokenType == Tokenizer.Token.IDENTIFIER)
-        {
-            Variable found = null;
-            for(int i=0; i<variables.size() && found==null; i++)
-            {
-                Variable var = variables.get(i);
-                if(var.getIdentifier().equals(token.getTokenString()))
-                    found = var;
-            }
-
-            if(found == null)
-                throw new ParseException("Undeclared identifier: " + token.getTokenString());
-
-            return found.varType;
-        }
-        else
-            throw new TypeException("Could not convert from token type");
-    }*/
-
-    /**
-     * Returns the end of the term starting at the given position
-     * @param tokenPosition The iteration location
-     * @return The position of the final token in the term
-     */
-    /*private int getTerm(int tokenPosition)
-    {
-        if(!getToken(tokenPosition).getTokenString().equals("("))
-        {
-            if(!isUnaryOperator(getToken(tokenPosition)))
-                return tokenPosition;
-            else
-                return tokenPosition+1;
-        }
-        while(!getToken(tokenPosition).getTokenString().equals(")"))
-            tokenPosition++;
-        return tokenPosition;
-    }*/
-
-    /**
-     * Checks whether the token is a binary operator or not
-     * @param token The token to be checked
-     * @return true if the token is a binary operator, false otherwise
-     */
-    /*private boolean isBinaryOperator(Tokenizer.Token token)
-    {
-        if(Tokenizer.arithmeticOperators.contains(token.getTokenString()))
-            return true;
-        if(Tokenizer.booleanOperators.contains(token.getTokenString()))
-            return true;
-        if(Tokenizer.relationalOperators.contains(token.getTokenString()))
-            return true;
-        return false;
-    }*/
-
-    /**
-     * Checks whether the token is an unary operator or not
-     * @param token The token to be checked
-     * @return true if the token is an unary operator, false otherwise
-     */
-    /*private boolean isUnaryOperator(Tokenizer.Token token)
-    {
-        return Tokenizer.unaryOperators.contains(token.getTokenString());
-    }*/
 
 
     /**

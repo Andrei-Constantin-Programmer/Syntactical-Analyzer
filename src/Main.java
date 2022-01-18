@@ -36,7 +36,7 @@ public class Main {
                     Tokenizer tokenizer = new Tokenizer(sanitized);
                     var tokens = tokenizer.getTokens();
                     Parser parser = new Parser(tokens);
-                    parser.parse();
+                    //parser.parse();
 
                     System.out.println("ok");
                 }catch(Exception ex)
