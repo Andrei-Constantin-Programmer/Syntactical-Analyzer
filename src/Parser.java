@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * The Parser class. It is used for parsing the given lines of code (in the Boaz language).
@@ -10,10 +9,9 @@ import java.util.Objects;
  */
 public class Parser
 {
-    private List<Tokenizer.Token> tokens;
-    private List<Tokenizer.Token> variables;
+    private final List<Tokenizer.Token> tokens;
 
-    private int tokenIterationLocation;
+    private int currentToken;
 
     /**
      * The constructor of the Parser.
@@ -22,7 +20,6 @@ public class Parser
     public Parser(List<Tokenizer.Token> tokens)
     {
         this.tokens = tokens;
-        variables = new ArrayList<>();
     }
 
     /**
@@ -30,6 +27,144 @@ public class Parser
      */
     public void parse()
     {
+        /*parseInit();
+        while(getCurrentToken().type != Tokenizer.TokenType.END)
+        {
+            var token = getCurrentToken();
+            if(token.type == Tokenizer.TokenType.PRINT)
+            {
+                currentToken++;
+                parseExpression();
+            }
+            currentToken++;
+        }*/
+        currentToken++;
+        try {
+            parseExpression();
+        }catch(Error error)
+        {
+
+        }
+    }
+
+    private Expression parseExpression()
+    {
+        System.out.println("Parse expression " + getCurrentToken());
+        return parseEquality();
+    }
+
+    private Expression parseEquality()
+    {
+        System.out.println("Parse equality " + getCurrentToken());
+        Expression expression = parseComparison();
+
+        while(checkTypeMatch(Tokenizer.TokenType.NOT_EQUAL, Tokenizer.TokenType.EQUAL))
+        {
+            Tokenizer.Token operator = tokens.get(currentToken-1);
+            Expression right = parseComparison();
+            expression = new Expression.BinaryExpression(expression, operator, right);
+        }
+
+        return expression;
+    }
+
+    private Expression parseComparison()
+    {
+        System.out.println("Parse comparison " + getCurrentToken());
+        Expression expression = parseTerm();
+
+        while(checkTypeMatch(Tokenizer.TokenType.GREATER, Tokenizer.TokenType.GREATER_EQUAL, Tokenizer.TokenType.LESS, Tokenizer.TokenType.LESS_EQUAL))
+        {
+            Tokenizer.Token operator = tokens.get(currentToken-1);
+            Expression right = parseTerm();
+            expression = new Expression.BinaryExpression(expression, operator, right);
+        }
+
+        return expression;
+    }
+
+    private Expression parseTerm()
+    {
+        System.out.println("Parse term " + getCurrentToken());
+        Expression expression = parseFactor();
+
+        while(checkTypeMatch(Tokenizer.TokenType.MINUS, Tokenizer.TokenType.PLUS, Tokenizer.TokenType.AND, Tokenizer.TokenType.OR))
+        {
+            Tokenizer.Token operator = tokens.get(currentToken-1);
+            Expression right = parseFactor();
+            expression = new Expression.BinaryExpression(expression, operator, right);
+        }
+
+        return expression;
+    }
+
+    private Expression parseFactor()
+    {
+        System.out.println("Parse factor " + getCurrentToken());
+        Expression expression = parseUnary();
+
+        while(checkTypeMatch(Tokenizer.TokenType.SLASH, Tokenizer.TokenType.STAR))
+        {
+            var operator = tokens.get(currentToken-1);
+            Expression right = parseUnary();
+            expression = new Expression.BinaryExpression(expression, operator, right);
+        }
+
+        return expression;
+    }
+
+    private Expression parseUnary()
+    {
+        System.out.println("Parse unary " + getCurrentToken());
+        if(checkTypeMatch(Tokenizer.TokenType.NOT, Tokenizer.TokenType.MINUS))
+        {
+            var operator = tokens.get(currentToken-1);
+            Expression right = parseUnary();
+            return new Expression.UnaryExpression(operator, right);
+        }
+
+        return primaryParse();
+    }
+
+    private Expression primaryParse()
+    {
+        System.out.println("Parse primary " + getCurrentToken());
+        if(checkTypeMatch(Tokenizer.TokenType.NUMBER, Tokenizer.TokenType.CHARACTER))
+            return new Expression.Literal(tokens.get(currentToken-1).literal);
+        if(checkTypeMatch(Tokenizer.TokenType.LEFT_PARENTHESIS))
+        {
+            Expression expression = parseExpression();
+            if(Tokenizer.TokenType.RIGHT_PARENTHESIS == getCurrentToken().type) {
+                currentToken++;
+            }
+            else
+                throw new ParseException("Expected ) not found");
+
+            return new Expression.Grouping(expression);
+        }
+
+        throw new Error("Expected expression");
+    }
+
+    private boolean checkTypeMatch(Tokenizer.TokenType... types)
+    {
+        for(var type: types)
+        {
+            if (type == getCurrentToken().type) {
+                currentToken++;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Check for the 'program', program identifier, 'end' and 'begin' tokens.
+     * Parse variable declarations.
+     */
+    private void parseInit() {
         if(!tokens.get(0).tokenString.equals("program"))
         {
             throw new ParseException("The program doesn't start with the keyword 'program'");
@@ -37,17 +172,14 @@ public class Parser
         if(!tokens.get(tokens.size()-1).tokenString.equals("end"))
             throw new ParseException("The program doesn't end with the keyword 'end'");
 
-        tokenIterationLocation = 1;
-        if (currentToken().type != Tokenizer.TokenType.IDENTIFIER)
+        currentToken = 1;
+        if (getCurrentToken().type != Tokenizer.TokenType.IDENTIFIER)
             throw new ParseException("No identifier found for program");
-        tokenIterationLocation++;
+        currentToken++;
         parseDeclarations();
-        if(!currentToken().tokenString.equals("begin"))
+        if(!getCurrentToken().tokenString.equals("begin"))
             throw new ParseException("No begin statement found");
-        tokenIterationLocation++;
-
-        for(var x: variables)
-            System.out.println(x);
+        currentToken++;
     }
 
     /**
@@ -55,7 +187,7 @@ public class Parser
      */
     private void parseDeclarations()
     {
-        while(!currentToken().tokenString.equals("begin"))
+        while(!getCurrentToken().tokenString.equals("begin"))
         {
             parseDeclaration();
         }
@@ -66,26 +198,24 @@ public class Parser
      */
     private void parseDeclaration()
     {
-        var token = currentToken();
+        var token = getCurrentToken();
         if (token.type != Tokenizer.TokenType.INT_TYPE && token.type != Tokenizer.TokenType.CHAR_TYPE)
             throw new ParseException("Wrong token type. Expected type: TYPE (int|char)");
-        tokenIterationLocation++;
-        if (currentToken().type != Tokenizer.TokenType.IDENTIFIER)
+        currentToken++;
+        if (getCurrentToken().type != Tokenizer.TokenType.IDENTIFIER)
             throw new ParseException("Wrong token type. Expected type: IDENTIFIER");
-        variables.add(new Tokenizer.Token(currentToken().tokenString, token.type, null));
-        tokenIterationLocation++;
-        while(currentToken().type == Tokenizer.TokenType.COMMA)
+        currentToken++;
+        while(getCurrentToken().type == Tokenizer.TokenType.COMMA)
         {
-            tokenIterationLocation++;
-            if (currentToken().type != Tokenizer.TokenType.IDENTIFIER)
+            currentToken++;
+            if (getCurrentToken().type != Tokenizer.TokenType.IDENTIFIER)
                 throw new ParseException("Wrong token type. Expected type: IDENTIFIER");
-            variables.add(new Tokenizer.Token(currentToken().tokenString, token.type, null));
-            tokenIterationLocation++;
+            currentToken++;
         }
 
-        if (currentToken().type != Tokenizer.TokenType.SEMICOLON)
+        if (getCurrentToken().type != Tokenizer.TokenType.SEMICOLON)
             throw new ParseException("Expected ;");
-        tokenIterationLocation++;
+        currentToken++;
     }
 
 
@@ -93,19 +223,9 @@ public class Parser
      * Returns the current token based on the token iteration location
      * @return The token
      */
-    private Tokenizer.Token currentToken()
+    private Tokenizer.Token getCurrentToken()
     {
-        return getToken(tokenIterationLocation);
-    }
-
-    /**
-     * Returns the token in the list at the specified position
-     * @param tokenIterationLocation The token iteration location
-     * @return The token
-     */
-    private Tokenizer.Token getToken(int tokenIterationLocation)
-    {
-        return tokens.get(tokenIterationLocation);
+        return tokens.get(currentToken);
     }
 
     /**

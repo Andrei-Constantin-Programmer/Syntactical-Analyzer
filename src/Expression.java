@@ -26,6 +26,7 @@ abstract class Expression {
         final Tokenizer.Token operator;
         final Expression right;
     }
+
     static class Grouping extends Expression {
         Grouping(Expression expression) {
             this.expression = expression;
