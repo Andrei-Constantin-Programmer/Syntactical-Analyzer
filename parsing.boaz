@@ -1,0 +1,11 @@
+program parsing
+int x, y;
+char c1, c2;
+begin
+
+print x;
+print c1;
+print x + y;
+print ( x + y ) + x;
+
+end

@@ -11,8 +11,14 @@ import java.util.Objects;
 public class Tokenizer
 {
     private List<Token> tokens;
-    private static List<String> keywords;
-    private static List<String> types;
+    public static List<String> baseKeywords;
+    public static List<String> statements;
+    public static List<String> statementComponents;
+    public static List<String> arithmeticOperators;
+    public static List<String> booleanOperators;
+    public static List<String> relationalOperators;
+    public static List<String> unaryOperators;
+    public static List<String> otherSymbols;
 
     /**
      * Constructor for the Tokenizer
@@ -20,8 +26,16 @@ public class Tokenizer
      */
     public Tokenizer(String input)
     {
-        keywords = new ArrayList<>(){{add("begin"); add("do"); add("else"); add("end"); add("fi"); add("if"); add("od"); add("print"); add("program"); add("then"); add("while");}};
-        types = new ArrayList<>(){{add("char"); add("int");}};
+        //keywords = new ArrayList<>(){{add("begin"); add("do"); add("else"); add("end"); add("fi"); add("if"); add("od"); add("print"); add("program"); add("then"); add("while");}};
+        baseKeywords = new ArrayList<>(){{add("program"); add("begin"); add("end");}};
+        statements = new ArrayList<>(){{add("if"); add("while"); add("print"); }};
+        statementComponents = new ArrayList<>(){{add("then"); add("else"); add("fi"); add("do"); add("od");}};
+        arithmeticOperators = new ArrayList<>(){{add("+"); add("*"); add("/");}};
+        booleanOperators = new ArrayList<>(){{add("&"); add("|");}};
+        relationalOperators = new ArrayList<>(){{add("="); add("!="); add("<"); add(">"); add("<="); add(">=");}};
+        unaryOperators = new ArrayList<>(){{add("-"); add("!");}};
+        otherSymbols = new ArrayList<>(){{add(","); add(";"); add(":="); add("("); add(")"); }};
+
         tokens = new ArrayList<>();
         tokenize(input);
     }
@@ -39,9 +53,11 @@ public class Tokenizer
             char lastChar = x.charAt(x.length()-1);
             if(isAlphabeticOrUnderscore(firstChar))
             {
-                if(keywords.contains(x))
-                    tokens.add(new Token(x, Token.KEYWORD));
-                else if(types.contains(x))
+                if(baseKeywords.contains(x))
+                    tokens.add(new Token(x, Token.BASE_KEYWORD));
+                else if(statements.contains(x))
+                    tokens.add(new Token(x, Token.STATEMENT));
+                else if(x.equals("int") || x.equals("char"))
                     tokens.add(new Token(x, Token.TYPE));
                 else
                     tokens.add(new Token(x, Token.IDENTIFIER));
@@ -50,14 +66,8 @@ public class Tokenizer
             {
                 for(int i=1; i<x.length()-1; i++)
                     if(!isNumeric(x.charAt(i)))
-                        throw new TokenizeException("Non-numeric value in numeric token.");
+                        throw new TokenizeException("Non-numeric value in numeric token");
                 tokens.add(new Token(x, Token.INTEGER));
-            }
-            else if(firstChar=='\'')
-            {
-                if(lastChar!='\'')
-                    throw new TokenizeException("Missing enclosing ' symbol");
-                tokens.add(new Token(x, Token.OPERAND));
             }
             else if(firstChar=='\"')
             {
@@ -65,9 +75,20 @@ public class Tokenizer
                     throw new TokenizeException("Missing enclosing \" symbol");
                 tokens.add(new Token(x, Token.CHARACTER));
             }
+            else if(arithmeticOperators.contains(x))
+                tokens.add(new Token(x, Token.ARITHMETIC_OPERATOR));
+            else if(booleanOperators.contains(x))
+                tokens.add(new Token(x, Token.BOOLEAN_OPERATOR));
+            else if(relationalOperators.contains(x))
+                tokens.add(new Token(x, Token.RELATIONAL_OPERATOR));
+            else if(unaryOperators.contains(x))
+                tokens.add(new Token(x, Token.UNARY_OPERATOR));
             else
             {
-                tokens.add(new Token(x, Token.SYMBOL));
+                if(otherSymbols.contains(x))
+                    tokens.add(new Token(x, Token.OTHER));
+                else
+                    throw new TokenizeException("Invalid token " + x);
             }
         }
     }
@@ -110,12 +131,16 @@ public class Tokenizer
     public static class Token
     {
         public static final int IDENTIFIER = 0;
-        public static final int KEYWORD = 1;
-        public static final int INTEGER = 2;
-        public static final int CHARACTER = 3;
-        public static final int OPERAND = 4;
-        public static final int SYMBOL = 5;
-        public static final int TYPE = 6;
+        public static final int BASE_KEYWORD = 1;
+        public static final int STATEMENT = 2;
+        public static final int INTEGER = 3;
+        public static final int CHARACTER = 4;
+        public static final int ARITHMETIC_OPERATOR = 5;
+        public static final int BOOLEAN_OPERATOR = 6;
+        public static final int RELATIONAL_OPERATOR = 7;
+        public static final int UNARY_OPERATOR = 8;
+        public static final int TYPE = 9;
+        public static final int OTHER = 10;
 
         private String tokenString;
         private int type;
@@ -127,7 +152,7 @@ public class Tokenizer
          */
         public Token(String tokenString, int tokenType)
         {
-            if(tokenType<0 || tokenType>6)
+            if(tokenType<0 || tokenType>10)
                 throw new IllegalArgumentException("The tokenType must be one of the static values.");
             this.tokenString = tokenString;
             this.type = tokenType;
@@ -170,6 +195,18 @@ public class Tokenizer
         }
     }
 
+    enum TokenType
+    {
+        LEFT_PARENT, RIGHT_PARENT, LEFT_BRACE, RIGHT_BRACE, COMMA, MINUS, PLUS, SEMICOLON, STAR, SLASH,
+
+        NOT, NOT_EQUAL, EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, ASSIGN,
+
+        IDENTIFIER, NUMBER, CHARACTER,
+
+        PROGRAM, BEGIN, END,
+
+        WHILE, PRINT, DO, OD, IF, THEN, ELSE, FI, INT, CHAR
+    }
 
     /**
      * Exception encountered during tokenizing
