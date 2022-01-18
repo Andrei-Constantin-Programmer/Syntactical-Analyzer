@@ -18,7 +18,7 @@ public class Tokenizer
     public Tokenizer(String input)
     {
         keywords = new HashMap<>(){{put("begin", TokenType.BEGIN); put("do", TokenType.DO); put("else", TokenType.ELSE); put("end", TokenType.END); put("fi", TokenType.FI); put("if", TokenType.IF); put("od", TokenType.OD); put("print", TokenType.PRINT);
-            put("program", TokenType.PROGRAM); put("then", TokenType.THEN); put("while", TokenType.WHILE);}};
+            put("program", TokenType.PROGRAM); put("then", TokenType.THEN); put("while", TokenType.WHILE); put("int", TokenType.INT_TYPE); put("char", TokenType.CHAR_TYPE);}};
 
         tokens = new ArrayList<>();
         tokenize(input);

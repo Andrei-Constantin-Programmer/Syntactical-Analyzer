@@ -11,15 +11,9 @@ import java.util.Objects;
 public class Parser
 {
     private List<Tokenizer.Token> tokens;
-
-    private List<Variable> variables;
+    private List<Tokenizer.Token> variables;
 
     private int tokenIterationLocation;
-
-    private static final int TYPE_INT = 0;
-    private static final int TYPE_CHAR = 1;
-    private static final int TYPE_BOOL = 2;
-    private static final int TYPE_UNKNOWN = 3;
 
     /**
      * The constructor of the Parser.
@@ -28,87 +22,71 @@ public class Parser
     public Parser(List<Tokenizer.Token> tokens)
     {
         this.tokens = tokens;
-
         variables = new ArrayList<>();
     }
 
     /**
      * Parse the lines of code
      */
-    /*public void parse()
+    public void parse()
     {
-        if(!tokens.get(0).getTokenString().equals("program"))
+        if(!tokens.get(0).tokenString.equals("program"))
         {
             throw new ParseException("The program doesn't start with the keyword 'program'");
         }
-        if(!tokens.get(tokens.size()-1).getTokenString().equals("end"))
+        if(!tokens.get(tokens.size()-1).tokenString.equals("end"))
             throw new ParseException("The program doesn't end with the keyword 'end'");
 
-        tokenIterationLocation = 0;
+        tokenIterationLocation = 1;
+        if (currentToken().type != Tokenizer.TokenType.IDENTIFIER)
+            throw new ParseException("No identifier found for program");
+        tokenIterationLocation++;
+        parseDeclarations();
+        if(!currentToken().tokenString.equals("begin"))
+            throw new ParseException("No begin statement found");
+        tokenIterationLocation++;
 
-        while(tokenIterationLocation<tokens.size())
-        {
-            var token = currentToken();
-            if(token.getTokenString().equals("program"))
-            {
-                tokenIterationLocation++;
-                if (currentToken().getTokenType() != Tokenizer.Token.IDENTIFIER)
-                    throw new ParseException("No identifier found for program");
-                tokenIterationLocation++;
-                parseDeclarations();
-                if(!currentToken().getTokenString().equals("begin"))
-                    throw new ParseException("No begin statement found");
-                tokenIterationLocation++;
-            }
-            else if(token.getTokenString().equals("print"))
-            {
-                tokenIterationLocation++;
-                //parseExpression(tokenIterationLocation);
-            }
-            else tokenIterationLocation++;
-        }
+        for(var x: variables)
+            System.out.println(x);
+    }
 
-    }*/
-
-    //region Main Parsers
     /**
      * Parse all declarations
      */
-    /*private void parseDeclarations()
+    private void parseDeclarations()
     {
-        while(!currentToken().getTokenString().equals("begin"))
+        while(!currentToken().tokenString.equals("begin"))
         {
             parseDeclaration();
         }
-    }*/
+    }
 
     /**
      * Parse a single declaration
      */
-    /*private void parseDeclaration()
+    private void parseDeclaration()
     {
-        var type = currentToken();
-        if (type.getTokenType() != Tokenizer.Token.TYPE)
+        var token = currentToken();
+        if (token.type != Tokenizer.TokenType.INT_TYPE && token.type != Tokenizer.TokenType.CHAR_TYPE)
             throw new ParseException("Wrong token type. Expected type: TYPE (int|char)");
         tokenIterationLocation++;
-        if (currentToken().getTokenType() != Tokenizer.Token.IDENTIFIER)
+        if (currentToken().type != Tokenizer.TokenType.IDENTIFIER)
             throw new ParseException("Wrong token type. Expected type: IDENTIFIER");
-        variables.add(new Variable(currentToken().getTokenString(), type.getTokenString().equals("int")?TYPE_INT:TYPE_CHAR));
+        variables.add(new Tokenizer.Token(currentToken().tokenString, token.type, null));
         tokenIterationLocation++;
-        while(currentToken().getTokenString().equals(","))
+        while(currentToken().type == Tokenizer.TokenType.COMMA)
         {
             tokenIterationLocation++;
-            if (currentToken().getTokenType() != Tokenizer.Token.IDENTIFIER)
+            if (currentToken().type != Tokenizer.TokenType.IDENTIFIER)
                 throw new ParseException("Wrong token type. Expected type: IDENTIFIER");
-            variables.add(new Variable(currentToken().getTokenString(), type.getTokenString().equals("int")?TYPE_INT:TYPE_CHAR));
+            variables.add(new Tokenizer.Token(currentToken().tokenString, token.type, null));
             tokenIterationLocation++;
         }
 
-        if (!currentToken().getTokenString().equals(";"))
+        if (currentToken().type != Tokenizer.TokenType.SEMICOLON)
             throw new ParseException("Expected ;");
         tokenIterationLocation++;
-    }*/
-
+    }
 
 
     /**
@@ -128,56 +106,6 @@ public class Parser
     private Tokenizer.Token getToken(int tokenIterationLocation)
     {
         return tokens.get(tokenIterationLocation);
-    }
-
-    /**
-     * A single variable, containing its identifier and its type (INT or CHAR)
-     */
-    private static class Variable
-    {
-        private String identifier;
-        private int varType;
-
-        /**
-         * Constructor for the Variable class. The variable type must be one of the static values in the class.
-         * @param identifier The identifier
-         * @param varType The variable type
-         */
-        public Variable(String identifier, int varType)
-        {
-            if(varType<0 || varType>1)
-                throw new IllegalArgumentException("The varType must be one of the static values.");
-            this.identifier = identifier;
-            this.varType = varType;
-        }
-
-        public String getIdentifier()
-        {
-            return identifier;
-        }
-
-        public int getVarType()
-        {
-            return varType;
-        }
-
-        @Override
-        public String toString() {
-            return identifier + " " + varType;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Variable)) return false;
-            Variable variable = (Variable) o;
-            return varType == variable.varType && identifier.equals(variable.identifier);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(identifier, varType);
-        }
     }
 
     /**
