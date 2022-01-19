@@ -10,6 +10,8 @@ public class Tokenizer
 {
     private List<Token> tokens;
     private final Map<String, TokenType> keywords;
+    public static final List<String> symbols = new ArrayList<>(){{add(";"); add(","); add("\\+"); add("\\-"); add("\\*"); add("\\/"); add("\\("); add("\\)"); add("\\:\\="); add("\\&"); add("\\|"); add("\\="); add("\\!\\="); add("\\>"); add("\\<"); add("\\<\\="); add("\\>\\="); }};
+
 
     /**
      * Constructor for the Tokenizer
@@ -17,8 +19,8 @@ public class Tokenizer
      */
     public Tokenizer(String input)
     {
-        keywords = new HashMap<>(){{put("begin", TokenType.BEGIN); put("do", TokenType.DO); put("else", TokenType.ELSE); put("end", TokenType.END); put("fi", TokenType.FI); put("if", TokenType.IF); put("od", TokenType.OD); put("print", TokenType.PRINT);
-            put("program", TokenType.PROGRAM); put("then", TokenType.THEN); put("while", TokenType.WHILE); put("int", TokenType.INT_TYPE); put("char", TokenType.CHAR_TYPE);}};
+        keywords = new HashMap<>(){{put("begin", TokenType.KEYWORD); put("do", TokenType.KEYWORD); put("else", TokenType.KEYWORD); put("end", TokenType.KEYWORD); put("fi", TokenType.KEYWORD); put("if", TokenType.KEYWORD); put("od", TokenType.KEYWORD);
+            put("print", TokenType.KEYWORD); put("program", TokenType.KEYWORD); put("then", TokenType.KEYWORD); put("while", TokenType.KEYWORD); put("int", TokenType.KEYWORD); put("char", TokenType.KEYWORD);}};
 
         tokens = new ArrayList<>();
         tokenize(input);
@@ -33,40 +35,24 @@ public class Tokenizer
         String[] splitInput = input.split("\\s+");
         for(var x: splitInput)
         {
-            switch (x) {
-                case "(" -> tokens.add(new Token(x, TokenType.LEFT_PARENTHESIS, null));
-                case ")" -> tokens.add(new Token(x, TokenType.RIGHT_PARENTHESIS, null));
-                case "," -> tokens.add(new Token(x, TokenType.COMMA, null));
-                case ";" -> tokens.add(new Token(x, TokenType.SEMICOLON, null));
-                case "+" -> tokens.add(new Token(x, TokenType.PLUS, null));
-                case "-" -> tokens.add(new Token(x, TokenType.MINUS, null));
-                case "*" -> tokens.add(new Token(x, TokenType.STAR, null));
-                case "/" -> tokens.add(new Token(x, TokenType.SLASH, null));
-                case "!" -> tokens.add(new Token(x, TokenType.NOT, null));
-                case "!=" -> tokens.add(new Token(x, TokenType.NOT_EQUAL, null));
-                case "=" -> tokens.add(new Token(x, TokenType.EQUAL, null));
-                case "<" -> tokens.add(new Token(x, TokenType.LESS, null));
-                case "<=" -> tokens.add(new Token(x, TokenType.LESS_EQUAL, null));
-                case ">" -> tokens.add(new Token(x, TokenType.GREATER, null));
-                case ">=" -> tokens.add(new Token(x, TokenType.GREATER_EQUAL, null));
-                case ":=" -> tokens.add(new Token(x, TokenType.ASSIGN, null));
-
-                default -> {
-                    if(isNumeric(x.charAt(0)))
-                        addNumber(x);
-                    else if(x.charAt(0)=='"')
-                        addChar(x);
-                    else if(isAlphabeticOrUnderscore(x.charAt(0)))
-                    {
-                        TokenType type = keywords.get(x);
-                        if(type==null)
-                            type=TokenType.IDENTIFIER;
-                        tokens.add(new Token(x, type, null));
-                    }
-                    else
-                        throw new TokenizeException("Unexpected token " + x);
-                }
+            if(isNumeric(x.charAt(0)))
+                addNumber(x);
+            else if(x.charAt(0)=='"')
+                addChar(x);
+            else if(isAlphabeticOrUnderscore(x.charAt(0)))
+            {
+                TokenType type = keywords.get(x);
+                if(type==null)
+                    type=TokenType.IDENTIFIER;
+                tokens.add(new Token(x, type));
             }
+            else if(symbols.contains(x))
+            {
+                tokens.add(new Token(x, TokenType.SYMBOL));
+            }
+
+            else
+                throw new TokenizeException("Unexpected token " + x);
         }
     }
 
@@ -80,7 +66,7 @@ public class Tokenizer
             throw new TokenizeException("Invalid character length");
         if(tokenString.charAt(tokenString.length()-1) != '"')
             throw new TokenizeException("No ending \" found for character");
-        tokens.add(new Token(tokenString, TokenType.CHARACTER, tokenString.charAt(1)));
+        tokens.add(new Token(tokenString, TokenType.CHAR_CONST));
     }
 
     /**
@@ -91,7 +77,7 @@ public class Tokenizer
     {
         try{
             int x = Integer.parseInt(tokenString);
-            tokens.add(new Token(tokenString, TokenType.NUMBER, x));
+            tokens.add(new Token(tokenString, TokenType.INT_CONST));
         }catch(Exception ex)
         {
             throw new TokenizeException("Invalid number");
@@ -138,18 +124,16 @@ public class Tokenizer
     {
         final String tokenString;
         final TokenType type;
-        final Object literal;
 
         /**
          * Constructor for the Token class. The token type must be one of the static values in the class.
          * @param tokenString The token itself
          * @param tokenType The type of token
          */
-        public Token(String tokenString, TokenType tokenType, Object literal)
+        public Token(String tokenString, TokenType tokenType)
         {
             this.tokenString = tokenString;
             this.type = tokenType;
-            this.literal = literal;
         }
 
         @Override
@@ -160,16 +144,9 @@ public class Tokenizer
 
     public enum TokenType
     {
-        LEFT_PARENTHESIS, RIGHT_PARENTHESIS, COMMA, MINUS, PLUS, SEMICOLON, STAR, SLASH, AND, OR,
-
-        NOT, NOT_EQUAL, EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, ASSIGN,
-
-        IDENTIFIER, NUMBER, CHARACTER,
-
-        PROGRAM, BEGIN, END,
-
-        WHILE, PRINT, DO, OD, IF, THEN, ELSE, FI, INT_TYPE, CHAR_TYPE
+        KEYWORD, SYMBOL, IDENTIFIER, INT_CONST, CHAR_CONST
     }
+
 
     /**
      * Exception encountered during tokenizing

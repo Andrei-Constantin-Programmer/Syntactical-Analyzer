@@ -16,7 +16,7 @@ public class Main {
     {
         String file = args[0];
         //Test if a file has been given and if it has the appropriate suffix.
-        if(file!=null && !file.isEmpty() && file.endsWith(".boaz"))
+        if(file != null && file.endsWith(".boaz"))
         {
             try{
                 //Create an assembler with the same name as the given file.
@@ -35,14 +35,15 @@ public class Main {
                 try {
                     Tokenizer tokenizer = new Tokenizer(sanitized);
                     var tokens = tokenizer.getTokens();
+
                     Parser parser = new Parser(tokens);
                     parser.parse();
 
                     System.out.println("ok");
                 }catch(Exception ex)
                 {
-                    System.err.println(ex.getMessage());
                     System.out.println("error");
+                    System.err.println(ex.getMessage());
                 }
 
             }catch(IOException ex)
@@ -65,25 +66,13 @@ public class Main {
         StringBuilder sanitizedInput = new StringBuilder();
         for(var line: lines)
         {
-            String sanitizedLine = line.strip().replaceAll("[\\n\\t]", "").replaceAll("\\s+", " ");
-            sanitizedLine = sanitizedLine.replaceAll("(?i)([;,])", " $1");
+            String sanitizedLine = line.strip();
+            for(var symbol: Tokenizer.symbols)
+                sanitizedLine = sanitizedLine.replaceAll(symbol, " "+symbol+" ");
+            sanitizedLine = sanitizedLine.replaceAll("[\\n\\t]", "").replaceAll("\\s+", " ");
             sanitizedInput.append(sanitizedLine).append(" ");
         }
 
         return sanitizedInput.toString();
-    }
-
-
-    /**
-     * Print the diagnostic of the Parser
-     *
-     * @param successful true if the parsing was successful, false otherwise
-     */
-    public void printDiagnostic(boolean successful)
-    {
-        if(successful)
-            System.out.println("ok");
-        else
-            System.out.println("error");
     }
 }
