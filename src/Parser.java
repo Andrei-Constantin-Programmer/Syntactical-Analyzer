@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +13,27 @@ public class Parser
 {
     private final List<Tokenizer.Token> tokens;
 
-    private Map<Tokenizer.Token, ExpressionType> symbolTable;
+    private Map<String, Expression.ExpressionType> variableTable;
+    public static final Map<String, Expression.ExpressionType> binaryOperators = new HashMap<>(){{
+        put("+", Expression.ExpressionType.INT);
+        put("-", Expression.ExpressionType.INT);
+        put("*", Expression.ExpressionType.INT);
+        put("/", Expression.ExpressionType.INT);
+
+        put("&", Expression.ExpressionType.BOOL);
+        put("|", Expression.ExpressionType.BOOL);
+
+        put("=", Expression.ExpressionType.BOOL);
+        put("!=", Expression.ExpressionType.BOOL);
+        put(">", Expression.ExpressionType.BOOL);
+        put(">=", Expression.ExpressionType.BOOL);
+        put("<", Expression.ExpressionType.BOOL);
+        put("<=", Expression.ExpressionType.BOOL);
+    }};
+    public static final Map<String, Expression.ExpressionType> unaryOperators = new HashMap<>(){{
+        put("!", Expression.ExpressionType.BOOL);
+        put("-", Expression.ExpressionType.INT);
+    }};
 
     private int currentToken;
 
@@ -22,6 +43,7 @@ public class Parser
      */
     public Parser(List<Tokenizer.Token> tokens)
     {
+        variableTable = new HashMap<>();
         this.tokens = tokens;
     }
 
@@ -31,23 +53,64 @@ public class Parser
     public void parse()
     {
         parseInit();
-        /*while(!getCurrentToken().tokenString.equals("END"))
+        while(!getCurrentToken().tokenString.equals("end"))
         {
             var token = getCurrentToken();
-            if(token.tokenString.equals("PRINT"))
+            if(token.tokenString.equals("print"))
             {
                 currentToken++;
-                parseExpression();
+                var x = createExpression(currentToken);
+                parseExpression(createExpression(currentToken));
             }
             currentToken++;
-        }*/
+        }
         currentToken++;
     }
 
-    private ExpressionType parseExpression() {
-        System.out.println("Parse expression " + getCurrentToken());
+    private Expression createExpression(int tokenPos)
+    {
+        while(!tokens.get(tokenPos).tokenString.equals(";"))
+        {
+            if(tokens.get(tokenPos).type == Tokenizer.TokenType.KEYWORD)
+                throw new ParseException("Expected ;");
+            tokenPos++;
+        }
+        List<Tokenizer.Token> newTokens = new ArrayList<>();
+        for(int i=currentToken; i<tokenPos; i++)
+        {
+            newTokens.add(tokens.get(i));
+        }
 
-        return ExpressionType.INT;
+        return new Expression(newTokens, Expression.ExpressionType.UNKNOWN);
+    }
+
+    private Expression parseExpression(Expression expression)
+    {
+        if(expression.isConstant())
+            return expression;
+        if(expression.isVariable(variableTable))
+            return expression;
+        /*if(expression.hasBinaryOperator())
+        {
+            var l = parseExpression(expression.left);
+            currentToken++;
+            var symbol = getCurrentToken().tokenString;
+            currentToken++;
+            var r = parseExpression(expression.right);
+
+            if(l.type!=r.type)
+                throw new TypeException("Expressions have different types");
+            return new Expression(expression.tokens, l, symbol, r, l.type);
+        }
+        if(expression.hasUnaryOperator())
+        {
+            var operand = parseExpression(expression.right);
+            var symbol = expression.symbol;
+            return new Expression(expression.expressionString, null, symbol, operand, operand.type);
+        }*/
+
+        System.out.println(expression.tokens);
+        throw new Parser.ParseException("Error parsing expression");
     }
 
     /**
@@ -94,12 +157,14 @@ public class Parser
         currentToken++;
         if (getCurrentToken().type != Tokenizer.TokenType.IDENTIFIER)
             throw new ParseException("Wrong token type. Expected type: IDENTIFIER");
+        variableTable.put(getCurrentToken().tokenString, Expression.getExpressionTypeFromToken(token));
         currentToken++;
         while(getCurrentToken().tokenString.equals(","))
         {
             currentToken++;
             if (getCurrentToken().type != Tokenizer.TokenType.IDENTIFIER)
                 throw new ParseException("Wrong token type. Expected type: IDENTIFIER");
+            variableTable.put(getCurrentToken().tokenString, Expression.getExpressionTypeFromToken(token));
             currentToken++;
         }
 
@@ -108,7 +173,6 @@ public class Parser
 
         currentToken++;
     }
-
 
     /**
      * Returns the current token based on the token iteration location
@@ -153,10 +217,5 @@ public class Parser
         {
             super(message);
         }
-    }
-
-    public enum ExpressionType
-    {
-        INT, CHAR, BOOL
     }
 }

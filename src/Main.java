@@ -43,7 +43,8 @@ public class Main {
                 }catch(Exception ex)
                 {
                     System.out.println("error");
-                    System.err.println(ex.getMessage());
+                    //System.err.println(ex.getMessage());
+                    throw ex;
                 }
 
             }catch(IOException ex)
@@ -63,11 +64,12 @@ public class Main {
      */
     private static String sanitizeInput(List<String> lines)
     {
+        List<String> symbols = new ArrayList<>(){{add(";"); add(","); add("\\+"); add("\\-"); add("\\*"); add("\\/"); add("\\("); add("\\)"); add("\\:\\="); add("\\&"); add("\\|"); add("\\="); add("\\!\\="); add("\\>"); add("\\<"); add("\\<\\="); add("\\>\\="); }};
         StringBuilder sanitizedInput = new StringBuilder();
         for(var line: lines)
         {
             String sanitizedLine = line.strip();
-            for(var symbol: Tokenizer.symbols)
+            for(var symbol: symbols)
                 sanitizedLine = sanitizedLine.replaceAll(symbol, " "+symbol+" ");
             sanitizedLine = sanitizedLine.replaceAll("[\\n\\t]", "").replaceAll("\\s+", " ");
             sanitizedInput.append(sanitizedLine).append(" ");
