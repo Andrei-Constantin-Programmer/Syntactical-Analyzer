@@ -10,7 +10,7 @@ print x+y;
 print x+y+z;
 print 3+x+2;
 print c1+c2;
-print(x+ z )-3;
+print (x+ z )-3;
 print x+3-y+(z*x)-(2/4);
 print !x - ------3;
 print x>=y;
@@ -20,5 +20,6 @@ print 123 + 456;
 print 123*!456;
 print 123 - 456;
 print !123;
+
 
 end

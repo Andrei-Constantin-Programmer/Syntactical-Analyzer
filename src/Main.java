@@ -36,6 +36,9 @@ public class Main {
                     Tokenizer tokenizer = new Tokenizer(sanitized);
                     var tokens = tokenizer.getTokens();
 
+                    for(var x:tokens)
+                        System.out.println(x);
+
                     Parser parser = new Parser(tokens);
                     parser.parse();
 
@@ -71,7 +74,7 @@ public class Main {
             String sanitizedLine = line.strip();
             for(var symbol: symbols)
                 sanitizedLine = sanitizedLine.replaceAll(symbol, " "+symbol+" ");
-            sanitizedLine = sanitizedLine.replaceAll("\\(", " ").replaceAll("\\)", " ").replaceAll("[\\n\\t]", "").replaceAll("\\s+", " ");
+            sanitizedLine = sanitizedLine/*.replaceAll("\\(", " ").replaceAll("\\)", " ")*/.replaceAll("[\\n\\t]", "").replaceAll("\\s+", " ");
             sanitizedInput.append(sanitizedLine).append(" ");
         }
 
