@@ -40,10 +40,11 @@ public class Parser
         }*/
         currentToken++;
         try {
-            parseExpression();
+            var expression = parseExpression();
+            System.out.println(expression);
         }catch(Error error)
         {
-
+            System.err.println(error);
         }
     }
 

@@ -10,6 +10,7 @@ abstract class Expression {
         R visitLiteralExpression(Literal expression);
         R visitUnaryExpressionExpression(UnaryExpression expression);
     }
+
     static class BinaryExpression extends Expression {
         BinaryExpression(Expression left, Tokenizer.Token operator, Expression right) {
             this.left = left;
