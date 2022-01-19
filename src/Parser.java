@@ -79,46 +79,37 @@ public class Parser
     private ExpressionType parseExpression(int tokenPosition, ExpressionType type, boolean expectVariable, int parenthesesClose)
     {
         var token = tokens.get(tokenPosition);
-        if(token.tokenString.equals(";")) {
-            if(parenthesesClose!=0)
-                throw new ParseException("Missing parenthesis");
-            return getBestType(type, ExpressionType.NONE);
-        }
 
         if(expectVariable)
         {
             if(token.tokenString.equals("("))
-            {
-                return parseExpression(tokenPosition+1, type, expectVariable, parenthesesClose+1);
-            }
-            if(symbolTableUnary.containsKey(token.tokenString)) {
-                type = getBestType(type, symbolTableUnary.get(token.tokenString));
-                return parseExpression(tokenPosition + 1, type, true, parenthesesClose);
-            }
-            ExpressionType termType;
+                return parseExpression(tokenPosition+1, type, true, parenthesesClose+1);
+            if(symbolTableUnary.containsKey(token.tokenString))
+                return parseExpression(tokenPosition + 1, getBestType(type, symbolTableUnary.get(token.tokenString)), true, parenthesesClose);
+
             try {
-                termType = getExpressionTypeFromToken(token);
+                return parseExpression(tokenPosition+1, getBestType(type, getExpressionTypeFromToken(token)), false, parenthesesClose);
             }catch(Exception ex)
             {
                 throw new ParseException("Variable " + token.tokenString + " not declared");
             }
-
-            type = getBestType(type, termType);
-            return parseExpression(tokenPosition+1, type, false, parenthesesClose);
         }
         else
         {
+            if(token.tokenString.equals(";"))
+                return finishParseExpression(type, parenthesesClose);
             if(token.tokenString.equals(")"))
-            {
-                return parseExpression(tokenPosition+1, type, expectVariable, parenthesesClose-1);
-            }
+                return parseExpression(tokenPosition+1, type, false, parenthesesClose-1);
             if(symbolTableBinary.containsKey(token.tokenString))
-            {
-                type = getBestType(type, symbolTableBinary.get(token.tokenString));
-                return parseExpression(tokenPosition + 1, type, true, parenthesesClose);
-            }
+                return parseExpression(tokenPosition + 1, getBestType(type, symbolTableBinary.get(token.tokenString)), true, parenthesesClose);
             throw new ParseException("Expected binary symbol expected");
         }
+    }
+
+    private ExpressionType finishParseExpression(ExpressionType type, int parenthesesClose) {
+        if(parenthesesClose !=0)
+            throw new ParseException("Missing parenthesis");
+        return getBestType(type, ExpressionType.NONE);
     }
 
     /**

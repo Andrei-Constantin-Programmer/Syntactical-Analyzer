@@ -1,6 +1,8 @@
 program parsing
 int x, y, z;
 char c1, c2;
+int num, sum;
+char ch;
 begin
 
 print x;
@@ -21,5 +23,10 @@ print 123*!456;
 print 123 - 456;
 print !123;
 
+print !x + (-y + 3) - c1 >= 3;
+
+print num / 3 != 0 & ch != "y";
+print sum + num * 2;
+print ch + 1;
 
 end

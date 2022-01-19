@@ -36,8 +36,8 @@ public class Main {
                     Tokenizer tokenizer = new Tokenizer(sanitized);
                     var tokens = tokenizer.getTokens();
 
-                    for(var x:tokens)
-                        System.out.println(x);
+                    /*for(var x:tokens)
+                        System.out.println(x);*/
 
                     Parser parser = new Parser(tokens);
                     parser.parse();
@@ -47,7 +47,7 @@ public class Main {
                 {
                     System.out.println("error");
                     //System.err.println(ex.getMessage());
-                    throw ex;
+                    //throw ex;
                 }
 
             }catch(IOException ex)
