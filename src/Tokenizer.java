@@ -11,7 +11,7 @@ public class Tokenizer
     private List<Token> tokens;
     private final Map<String, TokenType> keywords;
 
-    public static final List<String> symbols = new ArrayList<>(){{add(";"); add(","); add("+"); add("-"); add("*"); add("/"); add("("); add(")"); add(":="); add("&"); add("|"); add("="); add("!="); add(">"); add("<"); add("<="); add(">="); }};
+    public static final List<String> symbols = new ArrayList<>(){{add(";"); add(","); add("+"); add("-"); add("*"); add("/"); add(":="); add("&"); add("|"); add("="); add("!="); add(">"); add("<"); add("<="); add(">="); add("!");}};
 
     /**
      * Constructor for the Tokenizer
@@ -33,8 +33,9 @@ public class Tokenizer
     private void tokenize(String input)
     {
         String[] splitInput = input.split("\\s+");
-        for(var x: splitInput)
+        for(int i=0; i<splitInput.length; i++)
         {
+            var x = splitInput[i];
             if(isNumeric(x.charAt(0)))
                 addNumber(x);
             else if(x.charAt(0)=='"')
@@ -48,7 +49,24 @@ public class Tokenizer
             }
             else if(symbols.contains(x))
             {
-                tokens.add(new Token(x, TokenType.SYMBOL));
+                if(i<splitInput.length-1) {
+                    if (x.equals(">") && splitInput[i + 1].equals("=")) {
+                        tokens.add(new Token(">=", TokenType.SYMBOL));
+                        i++;
+                    }
+                    else if (x.equals("<") && splitInput[i + 1].equals("=")) {
+                        tokens.add(new Token("<=", TokenType.SYMBOL));
+                        i++;
+                    }
+                    else if(x.equals("!") && splitInput[i+1].equals("=")) {
+                        tokens.add(new Token("!=", TokenType.SYMBOL));
+                        i++;
+                    }
+                    else
+                        tokens.add(new Token(x, TokenType.SYMBOL));
+                }
+                else
+                    tokens.add(new Token(x, TokenType.SYMBOL));
             }
             else
                 throw new TokenizeException("Unexpected token " + x);
