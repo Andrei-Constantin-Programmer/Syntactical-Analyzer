@@ -159,6 +159,9 @@ public class Tokenizer
         }
     }
 
+    /**
+     * Enum that contains all possible token types
+     */
     public enum TokenType
     {
         KEYWORD, SYMBOL, IDENTIFIER, INT_CONST, CHAR_CONST

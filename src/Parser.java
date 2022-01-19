@@ -69,6 +69,13 @@ public class Parser
         currentToken++;
     }
 
+    /**
+     * Parse expression
+     * @param tokenPosition The position of the first token in the expression
+     * @param type The type of the expression
+     * @param expectVariable true if a variable (or constant) is expected, false if a binary symbol is expected
+     * @return The type of the expression
+     */
     private ExpressionType parseExpression(int tokenPosition, ExpressionType type, boolean expectVariable)
     {
         var token = tokens.get(tokenPosition);
@@ -103,6 +110,12 @@ public class Parser
         }
     }
 
+    /**
+     * Return the appropriate expression type.
+     * @param baseType The base type to be overridden (or not)
+     * @param type The new type that will override (or not)
+     * @return The expression type
+     */
     private ExpressionType getBestType(ExpressionType baseType, ExpressionType type)
     {
         if(baseType == ExpressionType.NONE)
@@ -175,6 +188,11 @@ public class Parser
         currentToken++;
     }
 
+    /**
+     * Return the expression type that correlates to the token type
+     * @param token The token
+     * @return The expression type corresponding to the token
+     */
     private ExpressionType getExpressionTypeFromToken(Tokenizer.Token token)
     {
         if(variableTable.containsKey(token.tokenString))
@@ -235,6 +253,9 @@ public class Parser
         }
     }
 
+    /**
+     * Enum that contains all possible expression types
+     */
     private enum ExpressionType
     {
         INT, BOOL, CHAR, NONE
