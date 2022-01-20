@@ -1,3 +1,4 @@
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,30 +56,34 @@ public class Parser
 
         while(!getCurrentToken().tokenString.equals("end"))
         {
-            var token = getCurrentToken();
-            System.out.println(token);
-            currentToken++;
-
-            if(token.tokenString.equals("print"))
-            {
-                parsePrintStatement();
-            }
-            else if(token.tokenString.equals("if"))
-            {
-                parseIfStatement();
-            }
-            else if(token.tokenString.equals("while"))
-            {
-                parseWhileStatement();
-            }
-            else if(variableTable.containsKey(token.tokenString))
-            {
-                var type = variableTable.get(token.tokenString);
-                parseAssignStatement(type);
-            }
-            /*else
-                throw new ParseException("Unknown statement " + token.tokenString);*/
+            parseStatement();
         }
+    }
+
+    private void parseStatement() {
+        var token = getCurrentToken();
+        System.out.println(token);
+        currentToken++;
+
+        if(token.tokenString.equals("print"))
+        {
+            parsePrintStatement();
+        }
+        else if(token.tokenString.equals("if"))
+        {
+            parseIfStatement();
+        }
+        else if(token.tokenString.equals("while"))
+        {
+            parseWhileStatement();
+        }
+        else if(variableTable.containsKey(token.tokenString))
+        {
+            var type = variableTable.get(token.tokenString);
+            parseAssignStatement(type);
+        }
+        else
+            throw new ParseException("Unknown statement " + token.tokenString);
     }
 
 
@@ -113,7 +118,18 @@ public class Parser
      */
     private void parseWhileStatement()
     {
-
+        var exprType = parseExpression(currentToken, ExpressionType.NONE, true, 0, "do");
+        currentToken = jumpExpression(currentToken, "do");
+        if(exprType!=ExpressionType.BOOL)
+            throw new TypeException("Boolean expression expected for 'while' condition");
+        while(!getCurrentToken().tokenString.equals("od"))
+        {
+            parseStatement();
+        }
+        currentToken++;
+        if(!getCurrentToken().tokenString.equals(";"))
+            throw new ParseException("Expected ;");
+        currentToken++;
     }
 
     /**
@@ -121,7 +137,24 @@ public class Parser
      */
     private void parseIfStatement()
     {
-
+        var exprType = parseExpression(currentToken, ExpressionType.NONE, true, 0, "then");
+        currentToken = jumpExpression(currentToken, "then");
+        if(exprType!=ExpressionType.BOOL)
+            throw new TypeException("Boolean expression expected for 'if' condition");
+        while(!getCurrentToken().tokenString.equals("else") && !getCurrentToken().tokenString.equals("fi"))
+        {
+            parseStatement();
+        }
+        if(getCurrentToken().tokenString.equals("else"))
+        {
+            currentToken++;
+            while (!getCurrentToken().tokenString.equals("fi"))
+                parseStatement();
+        }
+        currentToken++;
+        if(!getCurrentToken().tokenString.equals(";"))
+            throw new ParseException("Expected ;");
+        currentToken++;
     }
 
     /**
@@ -157,12 +190,15 @@ public class Parser
             if(symbolTableUnary.containsKey(token.tokenString))
                 return parseExpression(tokenPosition + 1, getBestType(type, symbolTableUnary.get(token.tokenString)), true, parenthesesOpen, endCase);
 
+            ExpressionType tokenType;
             try {
-                return parseExpression(tokenPosition+1, getBestType(type, getExpressionTypeFromToken(token)), false, parenthesesOpen, endCase);
+                tokenType = getExpressionTypeFromToken(token);
             }catch(Exception ex)
             {
                 throw new ParseException("Variable " + token.tokenString + " not declared");
             }
+
+            return parseExpression(tokenPosition+1, getBestType(type, tokenType), false, parenthesesOpen, endCase);
         }
         else
         {
@@ -172,12 +208,18 @@ public class Parser
                 return parseExpression(tokenPosition+1, type, false, parenthesesOpen-1, endCase);
             if(symbolTableBinary.containsKey(token.tokenString))
                 return parseExpression(tokenPosition + 1, getBestType(type, symbolTableBinary.get(token.tokenString)), true, parenthesesOpen, endCase);
-            throw new ParseException("Expected binary symbol expected");
+            throw new ParseException("Expected binary symbol");
         }
     }
 
-    private ExpressionType finishParseExpression(ExpressionType type, int parenthesesClose) {
-        if(parenthesesClose !=0)
+    /**
+     * Finish parsing an expression, checking for any missing parentheses
+     * @param type The type of the expression
+     * @param parenthesesOpen The number of open parentheses
+     * @return The type of the expression
+     */
+    private ExpressionType finishParseExpression(ExpressionType type, int parenthesesOpen) {
+        if(parenthesesOpen !=0)
             throw new ParseException("Missing parenthesis");
         return getBestType(type, ExpressionType.NONE);
     }

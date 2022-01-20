@@ -29,9 +29,28 @@ print num / 3 != 0 & ch != "y";
 print sum + num * 2;
 print ch + 1;
 
+x:=x;
 x := 3;
 y := z;
 ch := "2";
 ch := c1;
+x := x+y;
+
+if x > y then y:=x; fi;
+if x=y
+then
+ if(y=z)
+ then
+  y:=z;
+  z:=y;
+  print z;
+ fi;
+ print "h";
+else
+ x:=y;
+ print x+y+z;
+fi;
+
+while x>y do print x=y; od;
 
 end
