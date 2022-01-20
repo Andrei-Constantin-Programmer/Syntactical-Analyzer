@@ -62,7 +62,6 @@ public class Parser
 
     private void parseStatement() {
         var token = getCurrentToken();
-        System.out.println(token);
         currentToken++;
 
         if(token.tokenString.equals("print"))
