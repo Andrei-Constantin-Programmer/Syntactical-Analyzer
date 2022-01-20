@@ -53,4 +53,26 @@ fi;
 
 while x>y do print x=y; od;
 
+while ch != c1
+do
+ if(x=y) then
+  x:=z;
+  print x+y;
+ else
+  print "O";
+  print "K";
+ fi;
+ while "x" != 3 do
+  if x>z then
+   if(x<y) then
+    x:=y;
+   else
+    x:=z;
+   fi;
+  else
+   z:=y;
+  fi;
+  print "d";
+ od;
+od;
 end

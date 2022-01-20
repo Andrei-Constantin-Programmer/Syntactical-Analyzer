@@ -47,11 +47,11 @@ public class Main {
 
             }catch(IOException ex)
             {
-                System.err.println("Unable to read "+file);
+                System.out.println("error");
             }
         }
         else
-            System.err.println("Usage: sham file.boaz");
+            System.out.println("error");
     }
 
     /**
