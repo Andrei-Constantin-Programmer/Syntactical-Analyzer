@@ -29,4 +29,9 @@ print num / 3 != 0 & ch != "y";
 print sum + num * 2;
 print ch + 1;
 
+x := 3;
+y := z;
+ch := "2";
+ch := c1;
+
 end

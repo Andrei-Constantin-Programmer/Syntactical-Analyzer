@@ -11,7 +11,7 @@ public class Tokenizer
     private List<Token> tokens;
     private final Map<String, TokenType> keywords;
 
-    public static final List<String> symbols = new ArrayList<>(){{add(";"); add(","); add("+"); add("-"); add("*"); add("/"); add(":="); add("&"); add("|"); add("="); add("!="); add(">"); add("<"); add("<="); add(">="); add("!"); add("("); add(")");}};
+    public static final List<String> symbols = new ArrayList<>(){{add(";"); add(","); add("+"); add("-"); add("*"); add("/"); add(":="); add("&"); add("|"); add("="); add("!="); add(">"); add("<"); add("<="); add(">="); add("!"); add("("); add(")"); add(":");}};
 
     /**
      * Constructor for the Tokenizer
@@ -58,8 +58,12 @@ public class Tokenizer
                         tokens.add(new Token("<=", TokenType.SYMBOL));
                         i++;
                     }
-                    else if(x.equals("!") && splitInput[i+1].equals("=")) {
+                    else if(x.equals("!") && splitInput[i + 1].equals("=")) {
                         tokens.add(new Token("!=", TokenType.SYMBOL));
+                        i++;
+                    }
+                    else if(x.equals(":") && splitInput[i + 1].equals("=")) {
+                        tokens.add(new Token(":=", TokenType.SYMBOL));
                         i++;
                     }
                     else

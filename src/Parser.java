@@ -56,39 +56,109 @@ public class Parser
         while(!getCurrentToken().tokenString.equals("end"))
         {
             var token = getCurrentToken();
+            System.out.println(token);
+            currentToken++;
+
             if(token.tokenString.equals("print"))
             {
-                currentToken++;
-                var expressionType = parseExpression(currentToken, ExpressionType.NONE, true, 0);
-                if(expressionType==ExpressionType.NONE)
-                    throw new ParseException("Expression expected.");
-
+                parsePrintStatement();
             }
-            currentToken++;
+            else if(token.tokenString.equals("if"))
+            {
+                parseIfStatement();
+            }
+            else if(token.tokenString.equals("while"))
+            {
+                parseWhileStatement();
+            }
+            else if(variableTable.containsKey(token.tokenString))
+            {
+                var type = variableTable.get(token.tokenString);
+                parseAssignStatement(type);
+            }
+            /*else
+                throw new ParseException("Unknown statement " + token.tokenString);*/
         }
-        currentToken++;
     }
+
+
+    /**
+     * Parse a print statement
+     */
+    private void parsePrintStatement()
+    {
+        var expressionType = parseExpression(currentToken, ExpressionType.NONE, true, 0, ";");
+        if(expressionType==ExpressionType.NONE)
+            throw new ParseException("Expression expected");
+        currentToken = jumpExpression(currentToken, ";");
+    }
+
+    /**
+     * Parse an assign statement
+     * @param type The type of the variable
+     */
+    private void parseAssignStatement(ExpressionType type)
+    {
+        if(!tokens.get(currentToken).tokenString.equals(":="))
+            throw new ParseException("Assign statement expected");
+        currentToken++;
+        var exprType = parseExpression(currentToken, ExpressionType.NONE, true, 0, ";");
+        if(exprType != type)
+            throw new TypeException("Assignment mismatching expression types");
+        currentToken = jumpExpression(currentToken, ";");
+    }
+
+    /**
+     * Parse a while statement
+     */
+    private void parseWhileStatement()
+    {
+
+    }
+
+    /**
+     * Parse an if statement
+     */
+    private void parseIfStatement()
+    {
+
+    }
+
+    /**
+     * Get the token position following the expression starting at token position.
+     * @param tokenPosition The position of the first token in the expression
+     * @param endCase Where to stop the expression
+     */
+    private int jumpExpression(int tokenPosition, String endCase)
+    {
+        while(!tokens.get(tokenPosition).tokenString.equals(endCase))
+            tokenPosition++;
+        return tokenPosition+1;
+    }
+
 
     /**
      * Parse expression
      * @param tokenPosition The position of the first token in the expression
      * @param type The type of the expression
      * @param expectVariable true if a variable (or constant) is expected, false if a binary symbol is expected
+     * @param parenthesesOpen The amount of parentheses opened
+     * @param endCase Where to stop parsing the expression
      * @return The type of the expression
      */
-    private ExpressionType parseExpression(int tokenPosition, ExpressionType type, boolean expectVariable, int parenthesesClose)
+    private ExpressionType parseExpression(int tokenPosition, ExpressionType type, boolean expectVariable, int parenthesesOpen, String endCase)
     {
         var token = tokens.get(tokenPosition);
 
         if(expectVariable)
         {
             if(token.tokenString.equals("("))
-                return parseExpression(tokenPosition+1, type, true, parenthesesClose+1);
+                return parseExpression(tokenPosition+1, type, true, parenthesesOpen+1, endCase);
             if(symbolTableUnary.containsKey(token.tokenString))
-                return parseExpression(tokenPosition + 1, getBestType(type, symbolTableUnary.get(token.tokenString)), true, parenthesesClose);
+                return parseExpression(tokenPosition + 1, getBestType(type, symbolTableUnary.get(token.tokenString)), true, parenthesesOpen, endCase);
 
             try {
-                return parseExpression(tokenPosition+1, getBestType(type, getExpressionTypeFromToken(token)), false, parenthesesClose);
+                return parseExpression(tokenPosition+1, getBestType(type, getExpressionTypeFromToken(token)), false, parenthesesOpen, endCase);
             }catch(Exception ex)
             {
                 throw new ParseException("Variable " + token.tokenString + " not declared");
@@ -96,12 +166,12 @@ public class Parser
         }
         else
         {
-            if(token.tokenString.equals(";"))
-                return finishParseExpression(type, parenthesesClose);
+            if(token.tokenString.equals(endCase))
+                return finishParseExpression(type, parenthesesOpen);
             if(token.tokenString.equals(")"))
-                return parseExpression(tokenPosition+1, type, false, parenthesesClose-1);
+                return parseExpression(tokenPosition+1, type, false, parenthesesOpen-1, endCase);
             if(symbolTableBinary.containsKey(token.tokenString))
-                return parseExpression(tokenPosition + 1, getBestType(type, symbolTableBinary.get(token.tokenString)), true, parenthesesClose);
+                return parseExpression(tokenPosition + 1, getBestType(type, symbolTableBinary.get(token.tokenString)), true, parenthesesOpen, endCase);
             throw new ParseException("Expected binary symbol expected");
         }
     }
