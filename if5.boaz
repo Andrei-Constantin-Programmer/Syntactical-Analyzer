@@ -1,0 +1,10 @@
+program example
+int x;
+begin
+    if x < 1 & x > 1
+    then
+        x := 2;
+    else
+        x := 3;
+    fi;
+end

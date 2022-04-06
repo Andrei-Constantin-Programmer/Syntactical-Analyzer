@@ -1,0 +1,5 @@
+program example
+char x;
+begin
+x := "1";
+end

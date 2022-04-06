@@ -1,0 +1,5 @@
+program example
+char x , y;
+int a,b,c;
+begin
+end
