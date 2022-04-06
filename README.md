@@ -50,3 +50,8 @@ The course is based on [Nand2Tetris](https://www.nand2tetris.org/), but it has s
 bash compile
 bash parse example.boaz
 ```
+---
+
+# Special thanks
+* Special thanks to David Barnes for setting the assignment and creating the Boaz language
+* The Nand2Tetris creators for building the foundation blocks for this project
